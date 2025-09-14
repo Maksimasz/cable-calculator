@@ -64,6 +64,9 @@ def load_catalog_from_sheets():
         response = requests.get(csv_url, headers=headers)
         response.raise_for_status()
         
+        # Исправляем кодировку
+        response.encoding = 'utf-8'
+        
         # Парсим CSV
         csv_data = StringIO(response.text)
         reader = csv.DictReader(csv_data)
@@ -82,9 +85,11 @@ def load_catalog_from_sheets():
             size_key = None
             
             for key in row.keys():
-                if 'коннектор' in key.lower() or 'connector' in key.lower():
+                # Ищем колонку с названием коннектора (более гибкий поиск)
+                if any(word in key.lower() for word in ['коннектор', 'connector', 'вид', 'type']):
                     name_key = key
-                if 'размер' in key.lower() or 'size' in key.lower() or 'мм' in key.lower():
+                # Ищем колонку с размером (более гибкий поиск)
+                if any(word in key.lower() for word in ['размер', 'size', 'мм', 'mm']):
                     size_key = key
             
             if name_key and size_key and row[name_key] and row[size_key]:
