@@ -29,44 +29,46 @@ def get_google_sheets_client():
 def get_public_sheets_client():
     """Получение клиента для публичных таблиц"""
     try:
-        # Для публичных таблиц не нужны учетные данные
-        client = gspread.Client()
-        return client
+        # Для публичных таблиц используем gspread без авторизации
+        import gspread
+        return gspread
     except Exception as e:
         st.error(f"Ошибка подключения к публичной таблице: {e}")
         return None
 
 def load_catalog_from_sheets():
     """Загрузка каталога из Google Sheets"""
-    # Сначала пробуем с учетными данными
-    client = get_google_sheets_client()
-    if not client:
-        # Если не получилось, пробуем публичный доступ
-        client = get_public_sheets_client()
-        if not client:
-            return {}
-    
     try:
-        spreadsheet = client.open_by_key(SPREADSHEET_ID)
-        worksheet = spreadsheet.worksheet(WORKSHEET_NAME)
+        # Используем публичный доступ через URL
+        import requests
+        import csv
+        from io import StringIO
         
-        # Получаем все данные
-        records = worksheet.get_all_records()
+        # URL для экспорта Google Sheets в CSV
+        csv_url = f"https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/export?format=csv&gid=0"
+        
+        # Загружаем данные
+        response = requests.get(csv_url)
+        response.raise_for_status()
+        
+        # Парсим CSV
+        csv_data = StringIO(response.text)
+        reader = csv.DictReader(csv_data)
         
         catalog = {}
-        for record in records:
-            if 'Вид коннектора' in record and 'Размер (мм)' in record:
-                name = record['Вид коннектора']
-                size = record['Размер (мм)']
+        for row in reader:
+            if 'Вид коннектора' in row and 'Размер (мм)' in row:
+                name = row['Вид коннектора']
+                size = row['Размер (мм)']
                 if name and size:
                     try:
                         catalog[name] = float(size)
                     except ValueError:
                         continue
+        
         return catalog
     except Exception as e:
         st.error(f"Ошибка загрузки данных: {e}")
-        st.write(f"🔍 Детали ошибки: {type(e).__name__}")
         return {}
 
 def save_catalog_to_sheets(catalog):
