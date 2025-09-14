@@ -54,9 +54,6 @@ def load_catalog_from_sheets():
         # URL для экспорта Google Sheets в CSV (публичный доступ)
         csv_url = f"https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/export?format=csv"
         
-        # Отладочная информация
-        st.write(f"🔍 Пытаемся загрузить: {csv_url}")
-        
         # Загружаем данные с заголовками
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
@@ -71,13 +68,7 @@ def load_catalog_from_sheets():
         csv_data = StringIO(response.text)
         reader = csv.DictReader(csv_data)
         
-        # Отладочная информация
         rows = list(reader)
-        st.write(f"📊 Загружено строк: {len(rows)}")
-        if rows:
-            st.write(f"📋 Колонки: {list(rows[0].keys())}")
-            st.write(f"📋 Первая строка: {rows[0]}")
-        
         catalog = {}
         for row in rows:
             # Проверяем разные возможные названия колонок
@@ -97,12 +88,9 @@ def load_catalog_from_sheets():
                     catalog[row[name_key]] = float(row[size_key])
                 except ValueError:
                     continue
-        
-        st.write(f"✅ Успешно загружено коннекторов: {len(catalog)}")
         return catalog
     except Exception as e:
         st.error(f"Ошибка загрузки данных: {e}")
-        st.write(f"🔍 Детали ошибки: {type(e).__name__}")
         return {}
 
 def save_catalog_to_sheets(catalog):
