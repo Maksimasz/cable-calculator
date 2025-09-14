@@ -10,7 +10,14 @@ SCOPE = [
 ]
 
 # ID вашей Google Sheets таблицы (извлеките из URL)
-SPREADSHEET_ID = "10SrcUM8AAehI0rIV_c0szFW-9TWhbvb5iO0GecaahmY"  # Ваш ID
+import streamlit as st
+
+# Получаем ID из секретов Streamlit Cloud или используем по умолчанию
+try:
+    SPREADSHEET_ID = st.secrets["GOOGLE_SHEETS_ID"]
+except:
+    SPREADSHEET_ID = "10SrcUM8AAehI0rIV_c0szFW-9TWhbvb5iO0GecaahmY"  # Fallback ID
+
 WORKSHEET_NAME = "Каталог"  # Название листа
 
 def get_google_sheets_client():
@@ -44,11 +51,14 @@ def load_catalog_from_sheets():
         import csv
         from io import StringIO
         
-        # URL для экспорта Google Sheets в CSV
-        csv_url = f"https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/export?format=csv&gid=0"
+        # URL для экспорта Google Sheets в CSV (публичный доступ)
+        csv_url = f"https://docs.google.com/spreadsheets/d/{SPREADSHEET_ID}/export?format=csv"
         
-        # Загружаем данные
-        response = requests.get(csv_url)
+        # Загружаем данные с заголовками
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+        response = requests.get(csv_url, headers=headers)
         response.raise_for_status()
         
         # Парсим CSV
@@ -57,14 +67,21 @@ def load_catalog_from_sheets():
         
         catalog = {}
         for row in reader:
-            if 'Вид коннектора' in row and 'Размер (мм)' in row:
-                name = row['Вид коннектора']
-                size = row['Размер (мм)']
-                if name and size:
-                    try:
-                        catalog[name] = float(size)
-                    except ValueError:
-                        continue
+            # Проверяем разные возможные названия колонок
+            name_key = None
+            size_key = None
+            
+            for key in row.keys():
+                if 'коннектор' in key.lower() or 'connector' in key.lower():
+                    name_key = key
+                if 'размер' in key.lower() or 'size' in key.lower() or 'мм' in key.lower():
+                    size_key = key
+            
+            if name_key and size_key and row[name_key] and row[size_key]:
+                try:
+                    catalog[row[name_key]] = float(row[size_key])
+                except ValueError:
+                    continue
         
         return catalog
     except Exception as e:
