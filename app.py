@@ -2,6 +2,39 @@ import streamlit as st
 import csv
 import os
 
+# CSS стили для улучшения внешнего вида выпадающих списков
+st.markdown("""
+<style>
+/* Стили для выпадающих списков */
+.stSelectbox > div > div {
+    background-color: #262730 !important;
+}
+
+/* Цвет текста в выпадающем списке (опции) */
+.stSelectbox > div > div > div > div {
+    color: #90EE90 !important; /* светло-зеленый */
+}
+
+/* Цвет текста выбранного элемента остается обычным */
+.stSelectbox > div > div > div > div[data-baseweb="select"] {
+    color: #fafafa !important; /* обычный белый */
+}
+
+/* Улучшение контрастности для мобильных */
+@media (max-width: 768px) {
+    .stSelectbox > div > div {
+        background-color: #1a1a1a !important;
+        border: 1px solid #444 !important;
+    }
+    
+    .stSelectbox > div > div > div > div {
+        color: #90EE90 !important;
+        font-weight: 500 !important;
+    }
+}
+</style>
+""", unsafe_allow_html=True)
+
 # Импортируем функции для работы с Google Sheets
 try:
     from google_sheets_config import load_catalog_from_sheets, save_catalog_to_sheets
