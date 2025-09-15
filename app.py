@@ -114,8 +114,10 @@ def update_catalog_files():
 # Функция сохранения больше не нужна - данные редактируются только в Google Sheets
 
 # ---------- Интерфейс ----------
-# Всегда загружаем каталог заново для актуальных данных
-st.session_state.catalog = load_catalog()
+# Загружаем каталог только при первом запуске или принудительном обновлении
+if "catalog" not in st.session_state or st.session_state.get("force_reload", False):
+    st.session_state.catalog = load_catalog()
+    st.session_state.force_reload = False
 
 # Навигация по страницам
 if "current_page" not in st.session_state:
@@ -142,7 +144,7 @@ with st.sidebar:
             st.success("✅ Данные синхронизированы!")
         else:
             st.warning("⚠️ Синхронизация недоступна")
-        st.session_state.catalog = load_catalog()
+        st.session_state.force_reload = True
         st.rerun()
     
     st.divider()
@@ -177,16 +179,25 @@ with st.sidebar:
     st.subheader("📊 Информация")
     st.caption(f"Коннекторов: {len(st.session_state.catalog)}")
     
-    # Информация о подключении
-    if USE_GOOGLE_SHEETS:
-        try:
-            test_catalog = load_catalog_from_sheets()
-            if test_catalog:
-                st.success("☁️ Google Sheets подключен")
-            else:
-                st.warning("⚠️ Google Sheets недоступен")
-        except:
-            st.warning("⚠️ Google Sheets недоступен")
+    # Информация о подключении (кэшируем статус)
+    if "connection_status" not in st.session_state:
+        if USE_GOOGLE_SHEETS:
+            try:
+                test_catalog = load_catalog_from_sheets()
+                if test_catalog:
+                    st.session_state.connection_status = "connected"
+                else:
+                    st.session_state.connection_status = "unavailable"
+            except:
+                st.session_state.connection_status = "unavailable"
+        else:
+            st.session_state.connection_status = "local_only"
+    
+    # Показываем кэшированный статус
+    if st.session_state.connection_status == "connected":
+        st.success("☁️ Google Sheets подключен")
+    elif st.session_state.connection_status == "unavailable":
+        st.warning("⚠️ Google Sheets недоступен")
     else:
         st.info("💾 Только локальные данные")
 
@@ -360,6 +371,7 @@ elif st.session_state.current_page == "Управление":
                         st.error("❌ Не удалось сохранить коннектор!")
                     
                     st.session_state.show_add_connector = False
+                    st.session_state.force_reload = True
                     st.rerun()
             elif submit:
                 st.error("❌ Пожалуйста, заполните все поля!")
@@ -430,12 +442,14 @@ elif st.session_state.current_page == "Управление":
                                     # Обновляем файлы
                                     update_catalog_files()
                                     st.success(f"✅ Коннектор переименован в '{new_name_upper}'!")
+                                    st.session_state.force_reload = True
                                     st.rerun()
                             else:
                                 # Изменяем только размер
                                 st.session_state.catalog[selected_connector] = new_size
                                 update_catalog_files()
                                 st.success(f"✅ Размер коннектора '{selected_connector}' обновлен!")
+                                st.session_state.force_reload = True
                                 st.rerun()
                 
                 with col2:
@@ -447,6 +461,7 @@ elif st.session_state.current_page == "Управление":
                             del st.session_state.catalog[selected_connector]
                             update_catalog_files()
                             st.success(f"✅ Коннектор '{selected_connector}' удален!")
+                            st.session_state.force_reload = True
                             st.rerun()
         else:
             st.info("Коннекторы не найдены")
