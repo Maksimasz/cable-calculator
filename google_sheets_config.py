@@ -1,7 +1,13 @@
 # Конфигурация для Google Sheets
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
 import streamlit as st
+
+# Импорты для работы с Google Sheets (только для публичного доступа)
+try:
+    import gspread
+    from oauth2client.service_account import ServiceAccountCredentials
+    HAS_GSPREAD = True
+except ImportError:
+    HAS_GSPREAD = False
 
 # Настройки Google Sheets
 SCOPE = [
@@ -22,6 +28,8 @@ WORKSHEET_NAME = "Каталог"  # Название листа
 
 def get_google_sheets_client():
     """Получение клиента Google Sheets"""
+    if not HAS_GSPREAD:
+        return None
     try:
         # Создаем учетные данные из JSON файла
         creds = ServiceAccountCredentials.from_json_keyfile_name(
@@ -35,9 +43,10 @@ def get_google_sheets_client():
 
 def get_public_sheets_client():
     """Получение клиента для публичных таблиц"""
+    if not HAS_GSPREAD:
+        return None
     try:
         # Для публичных таблиц используем gspread без авторизации
-        import gspread
         return gspread
     except Exception as e:
         st.error(f"Ошибка подключения к публичной таблице: {e}")
@@ -103,6 +112,10 @@ def load_catalog_from_sheets():
 
 def save_catalog_to_sheets(catalog):
     """Сохранение каталога в Google Sheets"""
+    if not HAS_GSPREAD:
+        st.warning("Модуль gspread не установлен. Сохранение недоступно.")
+        return False
+    
     client = get_google_sheets_client()
     if not client:
         return False
