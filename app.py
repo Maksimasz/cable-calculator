@@ -68,12 +68,30 @@ st.divider()
 conn1 = st.selectbox("1 Коннектор", list(st.session_state.catalog.keys()), key="conn1")
 conn2 = st.selectbox("2 Коннектор", list(st.session_state.catalog.keys()), key="conn2")
 cable_len = st.number_input("Длина кабеля (мм)", min_value=0.0, step=1.0)
-tol = st.number_input("Толеранц (мм)", value=0.0, step=1.0)
+
+# Переключатель типа толеранса
+tol_type = st.radio("Тип толеранса", ["мм", "%"], horizontal=True, key="tol_type")
+
+# Поле ввода толеранса в зависимости от выбранного типа
+if tol_type == "мм":
+    tol_value = st.number_input("Толеранц (мм)", value=0.0, step=0.1, key="tol_mm")
+    tol_mm = tol_value
+else:
+    tol_percent = st.number_input("Толеранц (%)", value=0.0, step=0.1, key="tol_percent")
+    # Конвертируем % в мм (от длины кабеля)
+    tol_mm = (tol_percent / 100) * cable_len
 
 size1 = st.session_state.catalog[conn1]
 size2 = st.session_state.catalog[conn2]
-final_len = cable_len - (size1 + size2) + tol
+final_len = cable_len - (size1 + size2) + tol_mm
 
 st.write("Размер коннектора 1:", size1, "мм")
 st.write("Размер коннектора 2:", size2, "мм")
+
+# Показываем текущий толеранс
+if tol_type == "мм":
+    st.write("Толеранс:", tol_mm, "мм")
+else:
+    st.write("Толеранс:", tol_percent, "% (", f"{tol_mm:.2f}", "мм)")
+
 st.subheader(f"Окончательная длина кабеля: {final_len:.2f} мм")
