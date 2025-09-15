@@ -13,13 +13,18 @@ CSV_FILE = "connectors.csv"
 
 # ---------- Работа с данными ----------
 def load_catalog():
+    catalog = {}
+    
+    # Сначала пробуем Google Sheets
     if USE_GOOGLE_SHEETS:
-        catalog = load_catalog_from_sheets()
-        if catalog:
-            return catalog
+        try:
+            catalog = load_catalog_from_sheets()
+            if catalog:  # Если получили данные из Google Sheets
+                return catalog
+        except:
+            pass  # Если ошибка, продолжаем к fallback
     
     # Fallback к CSV файлу
-    catalog = {}
     if os.path.exists(CSV_FILE):
         with open(CSV_FILE, newline="", encoding="utf-8") as f:
             reader = csv.reader(f)
@@ -31,6 +36,7 @@ def load_catalog():
                     except ValueError:
                         continue
     else:
+        # Если нет CSV файла, используем базовый набор
         catalog = {
             "SF9351-60004": 3.0,
             "16_MCX-50-2-104": 5.0,
@@ -41,8 +47,8 @@ def load_catalog():
 # Функция сохранения больше не нужна - данные редактируются только в Google Sheets
 
 # ---------- Интерфейс ----------
-if "catalog" not in st.session_state:
-    st.session_state.catalog = load_catalog()
+# Всегда загружаем каталог заново для актуальных данных
+st.session_state.catalog = load_catalog()
 
 # CSS стили для улучшения внешнего вида выпадающих списков
 st.markdown("""
@@ -87,13 +93,18 @@ if USE_GOOGLE_SHEETS:
             st.caption(f"📊 В базе данных: {len(test_catalog)} коннекторов")
         else:
             st.title("❌ Калькулятор длины кабеля")
-            st.caption("📊 База данных недоступна")
-    except:
+            st.caption("📊 База данных недоступна - пустой каталог")
+            st.error("Каталог пустой или не загружается")
+    except Exception as e:
         st.title("❌ Калькулятор длины кабеля")
         st.caption("📊 База данных недоступна")
+        st.error(f"Ошибка подключения: {str(e)}")
+        # Показываем детали ошибки для отладки
+        st.write("🔍 Детали ошибки:", str(e))
 else:
     st.title("❌ Калькулятор длины кабеля")
     st.caption(f"📊 В локальной базе: {len(st.session_state.catalog)} коннекторов")
+    st.warning("Google Sheets модуль не найден")
 
 st.divider()
 

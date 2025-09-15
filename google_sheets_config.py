@@ -90,7 +90,15 @@ def load_catalog_from_sheets():
                     continue
         return catalog
     except Exception as e:
-        st.error(f"Ошибка загрузки данных: {e}")
+        # Более детальная информация об ошибке
+        error_msg = f"Ошибка загрузки данных: {e}"
+        if "403" in str(e):
+            error_msg += " (Таблица не публичная или доступ запрещен)"
+        elif "404" in str(e):
+            error_msg += " (Таблица не найдена)"
+        elif "timeout" in str(e).lower():
+            error_msg += " (Таймаут подключения)"
+        st.error(error_msg)
         return {}
 
 def save_catalog_to_sheets(catalog):
