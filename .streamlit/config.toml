@@ -1,0 +1,22 @@
+[server]
+# Разрешить доступ с любого IP адреса
+address = "0.0.0.0"
+port = 8501
+# Отключить проверки CORS для локальной разработки
+enableCORS = false
+enableXsrfProtection = false
+# Включить WebSocket для лучшей работы на мобильных
+enableWebsocketCompression = true
+
+[browser]
+# Отключить автоматическое открытие браузера
+gatherUsageStats = false
+serverAddress = "10.100.102.108"
+serverPort = 8501
+
+[theme]
+# Настройки темы для лучшего отображения на мобильных
+primaryColor = "#ff4b4b"
+backgroundColor = "#0e1117"
+secondaryBackgroundColor = "#262730"
+textColor = "#fafafa"

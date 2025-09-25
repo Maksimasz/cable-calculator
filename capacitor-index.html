@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор длины кабеля</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ff4b4b">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0e1117;
+            color: #fafafa;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #ff4b4b;
+            margin: 0;
+        }
+        .info {
+            background: #262730;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .button {
+            background: #ff4b4b;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+            display: inline-block;
+            text-decoration: none;
+        }
+        .button:hover {
+            background: #e03e3e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔌 Калькулятор длины кабеля</h1>
+        </div>
+        
+        <div class="info">
+            <h2>📱 Мобильное приложение</h2>
+            <p>Это приложение создано с помощью Capacitor и работает автономно на вашем устройстве.</p>
+            
+            <h3>🧮 Основные функции:</h3>
+            <ul>
+                <li>Расчет длины кабеля с учетом коннекторов</li>
+                <li>Каталог коннекторов</li>
+                <li>Конвертер единиц измерения</li>
+                <li>Работа без интернета</li>
+            </ul>
+        </div>
+        
+        <div class="info">
+            <h3>🚀 Открыть веб-версию:</h3>
+            <a href="https://huggingface.co/spaces/Maksimasz/cables" class="button" target="_blank">
+                Открыть онлайн версию
+            </a>
+        </div>
+        
+        <div class="info">
+            <h3>📊 Статистика:</h3>
+            <p>Приложение готово к использованию!</p>
+        </div>
+    </div>
+    
+    <script>
+        // Регистрация service worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(function(registration) {
+                    console.log('Service Worker зарегистрирован:', registration);
+                })
+                .catch(function(error) {
+                    console.log('Ошибка регистрации Service Worker:', error);
+                });
+        }
+    </script>
+</body>
+</html>
